@@ -19,7 +19,7 @@ macro_rules! solve {
         use std::fmt::Display;
         use std::time::Instant;
 
-        fn print_result<T: Display>(func: impl FnOnce(&str) -> Option<T>, input: &str) {
+        fn print_result<T: Display>(func: impl FnOnce(Input) -> Option<T>, input: Input) {
             let timer = Instant::now();
             let result = func(input);
             let elapsed = timer.elapsed();

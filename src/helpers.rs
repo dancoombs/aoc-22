@@ -14,15 +14,20 @@ impl<'a> Input<'a> {
         self.0
     }
 
-    pub fn tform_and_group_lines<F, T>(
+    pub fn split_and_tform_lines<F, T>(&self, f: F) -> impl Iterator<Item = T> + 'a
+    where
+        F: Fn(&str) -> T + 'a,
+    {
+        self.0.lines().map(f)
+    }
+
+    pub fn group_and_tform_lines<F, T>(
         &self,
         f: F,
     ) -> impl Iterator<Item = impl Iterator<Item = T> + 'a> + 'a
     where
-        F: Fn(&str) -> T + 'static + Copy,
+        F: Fn(&str) -> T + 'a + Copy,
     {
-        self.0
-            .split("\n\n")
-            .map(move |g| g.lines().map(f))
+        self.0.split("\n\n").map(move |g| g.lines().map(f))
     }
 }

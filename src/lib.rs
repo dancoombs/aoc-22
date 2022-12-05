@@ -19,19 +19,19 @@ macro_rules! solve {
         use std::fmt::Display;
         use std::time::Instant;
 
-        fn print_result<T: Display>(func: impl FnOnce(Input) -> Option<T>, input: Input) {
+        fn print_result<T: Display>(func: impl FnOnce(Input) -> anyhow::Result<T>, input: Input) {
             let timer = Instant::now();
             let result = func(input);
             let elapsed = timer.elapsed();
             match result {
-                Some(result) => {
+                Ok(result) => {
                     println!(
                         "{} {}(elapsed: {:.2?}){}",
                         result, ANSI_ITALIC, elapsed, ANSI_RESET
                     );
                 }
-                None => {
-                    println!("not solved.")
+                Err(e) => {
+                    println!("not solved. Error {e}")
                 }
             }
         }

@@ -9,13 +9,14 @@ use std::{
 };
 
 const MODULE_TEMPLATE: &str = r###"use advent_of_code::helpers::Input;
+use anyhow::{Result, anyhow};
 
-pub fn part_one(_input: Input) -> Option<u32> {
-    None
+pub fn part_one(_input: Input) -> Result<u32> {
+    Err(anyhow!("Not implemented"))
 }
 
-pub fn part_two(_input: Input) -> Option<u32> {
-    None
+pub fn part_two(_input: Input) -> Result<u32> {
+    Err(anyhow!("Not implemented"))
 }
 
 fn main() {
@@ -31,13 +32,13 @@ mod tests {
     #[test]
     fn test_part_one() {
         let input = advent_of_code::read_file("examples", DAY);
-        assert_eq!(part_one(Input::new(&input)), None);
+        assert_eq!(part_one(Input::new(&input)).unwrap(), 0);
     }
 
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", DAY);
-        assert_eq!(part_two(Input::new(&input)), None);
+        assert_eq!(part_two(Input::new(&input)).unwrap(), 0);
     }
 }
 "###;

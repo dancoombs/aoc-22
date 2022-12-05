@@ -1,37 +1,34 @@
 // use std::ops::Range;
 use advent_of_code::helpers::Input;
+use anyhow::Result;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-pub fn part_one(input: Input) -> Option<u32> {
+pub fn part_one(input: Input) -> Result<u32> {
     // Some(
     //     get_ranges(input)
     //         .filter(|(a, b)| range_contains(a, b) || range_contains(b, a))
     //         .count() as u32,
     // )
 
-    Some(
-        input
-            .split_and_tform_lines(parse_line)
-            .filter(ranges_contains)
-            .count() as u32,
-    )
+    Ok(input
+        .split_and_tform_lines(parse_line)
+        .filter(ranges_contains)
+        .count() as u32)
 }
 
-pub fn part_two(input: Input) -> Option<u32> {
+pub fn part_two(input: Input) -> Result<u32> {
     // Some(
     //     get_ranges(input)
     //         .filter(|(a, b)| ranges_overlap(a, b))
     //         .count() as u32,
     // )
 
-    Some(
-        input
-            .split_and_tform_lines(parse_line)
-            .filter(ranges_overlap)
-            .count() as u32,
-    )
+    Ok(input
+        .split_and_tform_lines(parse_line)
+        .filter(ranges_overlap)
+        .count() as u32)
 }
 
 // Iterator approach
@@ -93,12 +90,12 @@ mod tests {
     #[test]
     fn test_part_one() {
         let input = advent_of_code::read_file("examples", 4);
-        assert_eq!(part_one(Input::new(&input)), Some(2));
+        assert_eq!(part_one(Input::new(&input)).unwrap(), 2);
     }
 
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 4);
-        assert_eq!(part_two(Input::new(&input)), Some(4));
+        assert_eq!(part_two(Input::new(&input)).unwrap(), 4);
     }
 }

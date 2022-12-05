@@ -1,19 +1,19 @@
+use advent_of_code::helpers::Input;
+use anyhow::Result;
+use itertools::Itertools;
 use std::collections::HashSet;
 
-use advent_of_code::helpers::Input;
-use itertools::Itertools;
-
-pub fn part_one(input: Input) -> Option<u32> {
-    input
+pub fn part_one(input: Input) -> Result<u32> {
+    Ok(input
         .split_and_tform_lines(|l| {
             let (c0, c1) = l.split_at(l.len() / 2);
             find_collision(c0, c1)
         })
-        .sum1()
+        .sum())
 }
 
-pub fn part_two(input: Input) -> Option<u32> {
-    input
+pub fn part_two(input: Input) -> Result<u32> {
+    Ok(input
         .as_str()
         .lines()
         .chunks(3)
@@ -31,7 +31,7 @@ pub fn part_two(input: Input) -> Option<u32> {
             .next()
             .unwrap()
         })
-        .sum1()
+        .sum())
 }
 
 fn find_collision(c0: &str, c1: &str) -> u32 {
@@ -68,12 +68,12 @@ mod tests {
     #[test]
     fn test_part_one() {
         let input = advent_of_code::read_file("examples", 3);
-        assert_eq!(part_one(Input::new(&input)), Some(157));
+        assert_eq!(part_one(Input::new(&input)).unwrap(), 157);
     }
 
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 3);
-        assert_eq!(part_two(Input::new(&input)), Some(70));
+        assert_eq!(part_two(Input::new(&input)).unwrap(), 70);
     }
 }

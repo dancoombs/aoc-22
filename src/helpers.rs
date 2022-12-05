@@ -1,7 +1,4 @@
-/*
- * Use this file if you want to extract helpers from your solutions.
- * Example import from this file: `use advent_of_code::helpers::example_fn;`.
- */
+use itertools::Itertools;
 
 pub struct Input<'a>(&'a str);
 
@@ -12,6 +9,10 @@ impl<'a> Input<'a> {
 
     pub fn as_str(&self) -> &'a str {
         self.0
+    }
+
+    pub fn split(&self, delim: &str) -> (&str, &str) {
+        self.0.split(delim).next_tuple().unwrap()
     }
 
     pub fn split_and_tform_lines<F, T>(&self, f: F) -> impl Iterator<Item = T> + 'a

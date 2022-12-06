@@ -11,6 +11,10 @@ impl<'a> Input<'a> {
         self.0
     }
 
+    pub fn as_bytes(&self) -> &'a [u8] {
+        self.0.as_bytes()
+    }
+
     pub fn split(&self, delim: &str) -> (&str, &str) {
         self.0.split(delim).next_tuple().unwrap()
     }

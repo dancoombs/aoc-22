@@ -22,7 +22,7 @@ pub fn part_two(input: Input) -> Result<u32> {
     sizes.sort();
     let total_size = sizes.last().context("no sizes")?;
     let needed = total_size - (70000000 - 30000000);
-    sizes.iter().filter(|s| **s >= needed).next().map(|i| *i as u32).context("no dir found")
+    sizes.iter().find(|s| **s >= needed).map(|i| *i as u32).context("no dir found")
 }
 
 fn populate_fs(input: Input) -> Result<Filesystem> {
@@ -47,7 +47,7 @@ fn populate_fs(input: Input) -> Result<Filesystem> {
 fn fs_dir_sizes(fs: &Filesystem) -> Result<Vec<usize>> {
     let mut ret = vec![];
     let mut dirs_todo = vec![fs.root.clone()];
-    while dirs_todo.len() > 0 {
+    while !dirs_todo.is_empty() {
         let cur = dirs_todo.pop().context("bad pop")?;
         let curb = cur.borrow();
         let size = curb.get_size()?;

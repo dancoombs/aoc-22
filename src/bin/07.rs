@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{self, Formatter};
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::{cell::RefCell, fmt::Debug};
 
 use advent_of_code::helpers::Input;
@@ -84,7 +84,7 @@ impl Filesystem {
         self.cur
             .borrow_mut()
             .add_child(Rc::new(RefCell::new(Node::new_dir_node(
-                Some(self.cur.clone()),
+                Some(&self.cur),
                 name,
             ))))
     }
@@ -93,7 +93,7 @@ impl Filesystem {
         self.cur
             .borrow_mut()
             .add_child(Rc::new(RefCell::new(Node::new_file_node(
-                self.cur.clone(),
+                &self.cur,
                 name,
                 size,
             ))))
@@ -102,8 +102,8 @@ impl Filesystem {
     fn cd(&mut self, cmd: &str) -> Result<()> {
         self.cur = match cmd {
             "/" => self.root.clone(),
-            ".." => self.cur.borrow().get_parent()?,
-            _ => self.cur.borrow().child(cmd)?,
+            ".." => self.cur.borrow().get_parent()?.upgrade().context("parent no longer exists")?,
+            _ => self.cur.borrow().find_child(cmd)?,
         };
 
         Ok(())
@@ -113,25 +113,25 @@ impl Filesystem {
 struct Node {
     name: String,
     size: Option<usize>,
-    parent: Option<Rc<RefCell<Node>>>,
+    parent: Option<Weak<RefCell<Node>>>,
     children: Option<HashMap<String, Rc<RefCell<Node>>>>,
 }
 
 impl Node {
-    fn new_dir_node(parent: Option<Rc<RefCell<Node>>>, name: &str) -> Self {
+    fn new_dir_node(parent: Option<&Rc<RefCell<Node>>>, name: &str) -> Self {
         Self {
             name: name.to_string(),
             size: None,
-            parent,
+            parent: parent.map(|p| Rc::downgrade(p)),
             children: Some(HashMap::new()),
         }
     }
 
-    fn new_file_node(parent: Rc<RefCell<Node>>, name: &str, size: usize) -> Self {
+    fn new_file_node(parent: &Rc<RefCell<Node>>, name: &str, size: usize) -> Self {
         Self {
             name: name.to_string(),
             size: Some(size),
-            parent: Some(parent),
+            parent: Some(Rc::downgrade(parent)),
             children: None,
         }
     }
@@ -150,11 +150,11 @@ impl Node {
         Ok(())
     }
 
-    fn get_parent(&self) -> Result<Rc<RefCell<Node>>> {
+    fn get_parent(&self) -> Result<Weak<RefCell<Node>>> {
         self.parent.clone().context("No parent, root node")
     }
 
-    fn child(&self, name: &str) -> Result<Rc<RefCell<Node>>> {
+    fn find_child(&self, name: &str) -> Result<Rc<RefCell<Node>>> {
         if let Some(children) = &self.children {
             match children.get(name) {
                 Some(node) => Ok(node.clone()),

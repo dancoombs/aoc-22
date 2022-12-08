@@ -22,7 +22,11 @@ pub fn part_two(input: Input) -> Result<u32> {
     sizes.sort();
     let total_size = sizes.last().context("no sizes")?;
     let needed = total_size - (70000000 - 30000000);
-    sizes.iter().find(|s| **s >= needed).map(|i| *i as u32).context("no dir found")
+    sizes
+        .iter()
+        .find(|s| **s >= needed)
+        .map(|i| *i as u32)
+        .context("no dir found")
 }
 
 fn populate_fs(input: Input) -> Result<Filesystem> {
@@ -93,16 +97,19 @@ impl Filesystem {
         self.cur
             .borrow_mut()
             .add_child(Rc::new(RefCell::new(Node::new_file_node(
-                &self.cur,
-                name,
-                size,
+                &self.cur, name, size,
             ))))
     }
 
     fn cd(&mut self, cmd: &str) -> Result<()> {
         self.cur = match cmd {
             "/" => self.root.clone(),
-            ".." => self.cur.borrow().get_parent()?.upgrade().context("parent no longer exists")?,
+            ".." => self
+                .cur
+                .borrow()
+                .get_parent()?
+                .upgrade()
+                .context("parent no longer exists")?,
             _ => self.cur.borrow().find_child(cmd)?,
         };
 

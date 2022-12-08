@@ -122,7 +122,7 @@ impl Node {
         Self {
             name: name.to_string(),
             size: None,
-            parent: parent.map(|p| Rc::downgrade(p)),
+            parent: parent.map(Rc::downgrade),
             children: Some(HashMap::new()),
         }
     }

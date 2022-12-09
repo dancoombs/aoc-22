@@ -46,19 +46,22 @@ fn simulate_rope(input: Input, num_knots: usize, print: bool) -> Result<u32> {
 }
 
 fn move_knot(knots: &mut [[i32; 2]], i: usize) {
-    if (knots[i - 1][0] - knots[i][0]).abs() > 1 && (knots[i - 1][1] - knots[i][1]).abs() > 1 {
-        knots[i][0] += (knots[i - 1][0] - knots[i][0]) / 2;
-        knots[i][1] += (knots[i - 1][1] - knots[i][1]) / 2;
-    } else if (knots[i - 1][0] - knots[i][0]).abs() > 1 {
-        knots[i][0] += (knots[i - 1][0] - knots[i][0]) / 2;
-        if (knots[i - 1][1] - knots[i][1]).abs() == 1 {
-            knots[i][1] += knots[i - 1][1] - knots[i][1];
-        }
-    } else if (knots[i - 1][1] - knots[i][1]).abs() > 1 {
-        knots[i][1] += (knots[i - 1][1] - knots[i][1]) / 2;
-        if (knots[i - 1][0] - knots[i][0]).abs() == 1 {
-            knots[i][0] += knots[i - 1][0] - knots[i][0];
-        }
+    let dist = knot_dist(&knots[i - 1], &knots[i]);
+    if dist[0].abs() == 2 || dist[1].abs() == 2 {
+        knots[i][0] += move_towards(dist[0]);
+        knots[i][1] += move_towards(dist[1]);
+    }
+}
+
+fn knot_dist(a: &[i32; 2], b: &[i32; 2]) -> [i32; 2] {
+    [a[0] - b[0], a[1] - b[1]]
+}
+
+fn move_towards(dist: i32) -> i32 {
+    match dist.cmp(&0) {
+        std::cmp::Ordering::Less => -1,
+        std::cmp::Ordering::Equal => 0,
+        std::cmp::Ordering::Greater => 1,
     }
 }
 

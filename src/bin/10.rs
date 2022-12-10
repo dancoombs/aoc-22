@@ -1,66 +1,60 @@
+use std::str::FromStr;
+
 use advent_of_code::helpers::Input;
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
 
 pub fn part_one(input: Input) -> Result<i32> {
-    let program = parse_insts(input)?;
-    let mut cntr = 0_usize;
-    let mut x = 1_i32;
-    let mut signal_values = vec![];
-
-    for inst in program {
-        cntr += 1;
-        capture_signals(&mut signal_values, cntr, x);
-        match inst {
-            Opcode::Nop => {}
-            Opcode::Addx(v) => {
-                cntr += 1;
-                capture_signals(&mut signal_values, cntr, x);
-                x += v;
-            }
+    let screen = Screen::new(parse_program(input)?);
+    let mut res = 0_i32;
+    for (i, x) in screen.enumerate() {
+        let cycle = i + 1;
+        if cycle >= 20 && (cycle - 20) % 40 == 0 {
+            res += x * cycle as i32;
         }
     }
-
-    Ok(signal_values.iter().sum())
+    Ok(res)
 }
 
 pub fn part_two(input: Input) -> Result<i32> {
-    let program = parse_insts(input)?;
-    let mut cntr = 0_usize;
-    let mut x = 1_i32;
-    let mut screen = vec![['.'; 40]; 1];
-
-    for inst in program {
-        cntr += 1;
-        update_screen(&mut screen, cntr, x);
-
-        match inst {
-            Opcode::Nop => {}
-            Opcode::Addx(v) => {
-                cntr += 1;
-                update_screen(&mut screen, cntr, x);
-                x += v;
+    let screen = Screen::new(parse_program(input)?);
+    let mut pixels = vec![['.'; 40]; 1];
+    for (i, x) in screen.enumerate() {
+        // i == cycle - 1
+        let pos = i % 40;
+        if (pos as i32 - x).abs() < 2 {
+            while pixels.len() < i / 40 + 1 {
+                pixels.push(['.'; 40]);
             }
+
+            pixels[i / 40][pos] = '#';
         }
     }
 
-    for row in screen {
+    for row in pixels {
         println!("{}", row.iter().join(""));
     }
 
     Ok(0)
 }
 
+fn parse_program(input: Input) -> Result<Vec<Opcode>> {
+    input.as_str().lines().map(|s| s.parse()).collect()
+}
+
+#[derive(Debug)]
 enum Opcode {
-    Nop,
+    Noop,
     Addx(i32),
 }
 
-impl Opcode {
-    fn parse(s: &str) -> Result<Self> {
+impl FromStr for Opcode {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let parts = s.split_whitespace().collect_vec();
         match parts[0] {
-            "noop" => Ok(Opcode::Nop),
+            "noop" => Ok(Opcode::Noop),
             "addx" => {
                 let x = parts[1].parse()?;
                 Ok(Opcode::Addx(x))
@@ -70,24 +64,48 @@ impl Opcode {
     }
 }
 
-fn parse_insts(input: Input) -> Result<Vec<Opcode>> {
-    input.as_str().lines().map(Opcode::parse).collect()
+struct Screen {
+    program: Vec<Opcode>,
+    cntr: usize,
+    x: i32,
+    stalled: bool,
+    inst_idx: usize,
 }
 
-fn capture_signals(signal_values: &mut Vec<i32>, cntr: usize, x: i32) {
-    if cntr == 20 + 40 * signal_values.len() {
-        signal_values.push(x * cntr as i32);
+impl Screen {
+    fn new(program: Vec<Opcode>) -> Self {
+        Self {
+            program,
+            cntr: 0,
+            x: 1,
+            stalled: false,
+            inst_idx: 0,
+        }
     }
 }
 
-fn update_screen(screen: &mut Vec<[char; 40]>, cntr: usize, x: i32) {
-    let pos = (cntr - 1) % 40;
-    if (pos as i32 - x).abs() < 2 {
-        while screen.len() < (cntr - 1) / 40 + 1 {
-            screen.push(['.'; 40]);
+impl Iterator for Screen {
+    type Item = i32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.inst_idx >= self.program.len() {
+            return None;
         }
 
-        screen[(cntr - 1) / 40][pos] = '#';
+        let x_before = self.x;
+        self.cntr += 1;
+        match self.program[self.inst_idx] {
+            Opcode::Noop => self.inst_idx += 1,
+            Opcode::Addx(v) => {
+                if self.stalled {
+                    self.x += v;
+                    self.inst_idx += 1;
+                }
+                self.stalled = !self.stalled;
+            }
+        };
+
+        Some(x_before)
     }
 }
 

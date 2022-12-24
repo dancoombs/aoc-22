@@ -8,72 +8,33 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 
 pub fn part_one(input: Input) -> Result<u32> {
-    let mut grid = input.as_str().parse::<Grid>()?;
-    let mut seen = HashSet::new();
-    let mut grid_time = 0;
-    let goal = (grid.cells.len() - 1, grid.cells[0].len() - 2);
-    let mut states = VecDeque::from([(0, (0, 1))]);
+    let grid = input.as_str().parse::<Grid>()?;
+    let goals = [(grid.cells.len() - 1, grid.cells[0].len() - 2)];
 
-    while !states.is_empty() {
-        let (t, (i, j)) = states.pop_front().unwrap();
-        if (i, j) == goal {
-            return Ok(t);
-        }
-        if t == grid_time {
-            grid = grid.step();
-            grid_time += 1;
-        }
-
-        if seen.contains(&(t, (i, j))) {
-            continue;
-        }
-        seen.insert((t, (i, j)));
-
-        // move
-        for (di, dj) in DIR.iter() {
-            // special case for the top left corner
-            if i == 0 && j == 1 && *di == -1 {
-                continue;
-            }
-
-            let (ni, nj) = ((i as i32 + di) as usize, (j as i32 + dj) as usize);
-            match &grid.cells[ni][nj] {
-                Cell::Wall => continue,
-                Cell::Blizzard(v) => {
-                    if v.is_empty() {
-                        states.push_back((t + 1, (ni, nj)));
-                    }
-                }
-            }
-        }
-
-        // wait
-        if let Cell::Blizzard(v) = &grid.cells[i][j] {
-            if v.is_empty() {
-                states.push_back((t + 1, (i, j)));
-            }
-        }
-    }
-
-    Err(anyhow!("Solution not found"))
+    find_solution(grid, &goals)
 }
 
 pub fn part_two(input: Input) -> Result<u32> {
-    let mut grid = input.as_str().parse::<Grid>()?;
-    let mut seen = HashSet::new();
-    let mut grid_time = 0;
+    let grid = input.as_str().parse::<Grid>()?;
     let goals = [
         (grid.cells.len() - 1, grid.cells[0].len() - 2),
         (0, 1),
         (grid.cells.len() - 1, grid.cells[0].len() - 2),
     ];
+
+    find_solution(grid, &goals)
+}
+
+fn find_solution(mut grid: Grid, goals: &[(usize, usize)]) -> Result<u32> {
+    let mut seen = HashSet::new();
+    let mut grid_time = 0;
     let mut states = VecDeque::from([(0, (0, 1), 0)]);
 
     while !states.is_empty() {
         let (t, (i, j), mut stage) = states.pop_front().unwrap();
         if (i, j) == goals[stage] {
             stage += 1;
-            if stage == 3 {
+            if stage == goals.len() {
                 return Ok(t);
             }
         }

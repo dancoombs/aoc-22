@@ -4,7 +4,7 @@ on:
     # !Please set a different minute than 51 if you enable this!
 #     schedule:
 #         - cron: "44 */6 * * *" # Every 6 hours
-#     workflow_dispatch:
+    workflow_dispatch:
 
 jobs:
     update-readme:
